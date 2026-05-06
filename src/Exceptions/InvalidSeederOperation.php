@@ -29,4 +29,9 @@ class InvalidSeederOperation extends InvalidArgumentException
     {
         return new self('Cannot run an update without any columns. Call columns([...]) first.');
     }
+
+    public static function missingUniqueBy(): self
+    {
+        return new self('upsert() requires at least one column in $uniqueBy to detect duplicates.');
+    }
 }
