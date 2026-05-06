@@ -54,4 +54,47 @@ class AddBuilder extends Builder
 
         return count($this->rows);
     }
+
+    /**
+     * Insert all accumulated rows, silently ignoring duplicates as defined by
+     * the underlying database (typically primary or unique key conflicts).
+     * Returns the number of rows actually inserted.
+     */
+    public function insertOrIgnore(): int
+    {
+        if ($this->rows === []) {
+            return 0;
+        }
+
+        return $this->query()->insertOrIgnore($this->rows);
+    }
+
+    /**
+     * Insert rows or update them when they conflict on the given unique
+     * columns.
+     *
+     * @param  array<int, string>|string  $uniqueBy  The unique column(s) used to detect existing rows.
+     * @param  array<int, string>|null  $update  Columns to update on conflict. When null, all
+     *                                           columns except $uniqueBy are updated.
+     * @return int Number of rows inserted plus rows updated (driver-dependent).
+     */
+    public function upsert(array|string $uniqueBy, ?array $update = null): int
+    {
+        if ($this->rows === []) {
+            return 0;
+        }
+
+        $uniqueBy = (array) $uniqueBy;
+
+        if ($uniqueBy === []) {
+            throw InvalidSeederOperation::missingUniqueBy();
+        }
+
+        if ($update === null) {
+            $columns = array_keys($this->rows[0]);
+            $update = array_values(array_diff($columns, $uniqueBy));
+        }
+
+        return $this->query()->upsert($this->rows, $uniqueBy, $update);
+    }
 }

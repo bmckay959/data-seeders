@@ -111,7 +111,36 @@ $seeder->add()
     ->run();
 ```
 
-`columns()` accepts a single associative row or a list of rows, and may be called multiple times to accumulate rows before `run()` performs a single insert. `add()` is a strict insert — it does not upsert or skip duplicates.
+`columns()` accepts a single associative row or a list of rows, and may be called multiple times to accumulate rows before the terminal call. `run()` performs a strict insert — it does not upsert or skip duplicates.
+
+If you need to be tolerant of existing rows, use one of the alternative terminals instead of `run()`:
+
+```php
+$seeder->add()
+    ->table('users')
+    ->columns([
+        ['name' => 'Alice', 'email' => 'alice@example.com'],
+        ['name' => 'Bob',   'email' => 'bob@example.com'],
+    ])
+    ->insertOrIgnore();          // skip rows that conflict on unique/primary keys
+
+$seeder->add()
+    ->table('users')
+    ->columns([
+        ['name' => 'Alice Smith', 'email' => 'alice@example.com'],
+        ['name' => 'Bob',         'email' => 'bob@example.com'],
+    ])
+    ->upsert(['email']);         // insert new rows, update matching rows on conflict
+
+$seeder->add()
+    ->table('users')
+    ->columns([
+        ['name' => 'Alice Smith', 'email' => 'alice@example.com', 'is_admin' => false],
+    ])
+    ->upsert(['email'], ['name']); // only `name` is updated on conflict; other columns are preserved
+```
+
+`upsert()` accepts the unique columns used to detect conflicts as the first argument (a single column name or array). The optional second argument lists which columns to overwrite on conflict; when omitted, every column except the unique-by columns is updated.
 
 ### `update()`
 

@@ -74,3 +74,78 @@ it('throws when no table or model is set', function () {
 it('throws when given a non-Model class via model()', function () {
     makeSeeder()->add()->model(stdClass::class);
 })->throws(InvalidSeederOperation::class);
+
+it('skips duplicates with insertOrIgnore()', function () {
+    DB::table('users')->insert(['name' => 'Alice', 'email' => 'alice@example.com']);
+
+    $inserted = makeSeeder()->add()
+        ->table('users')
+        ->columns([
+            ['name' => 'Alice', 'email' => 'alice@example.com'],
+            ['name' => 'Bob', 'email' => 'bob@example.com'],
+        ])
+        ->insertOrIgnore();
+
+    expect($inserted)->toBe(1)
+        ->and(DB::table('users')->count())->toBe(2)
+        ->and(DB::table('users')->where('email', 'bob@example.com')->exists())->toBeTrue();
+});
+
+it('returns 0 from insertOrIgnore() when no rows are added', function () {
+    expect(makeSeeder()->add()->table('users')->insertOrIgnore())->toBe(0);
+});
+
+it('inserts new rows and updates existing rows with upsert()', function () {
+    DB::table('users')->insert([
+        'name' => 'Alice',
+        'email' => 'alice@example.com',
+        'is_admin' => false,
+    ]);
+
+    makeSeeder()->add()
+        ->table('users')
+        ->columns([
+            ['name' => 'Alice Smith', 'email' => 'alice@example.com', 'is_admin' => true],
+            ['name' => 'Bob', 'email' => 'bob@example.com', 'is_admin' => false],
+        ])
+        ->upsert(['email']);
+
+    $alice = DB::table('users')->where('email', 'alice@example.com')->first();
+    $bob = DB::table('users')->where('email', 'bob@example.com')->first();
+
+    expect(DB::table('users')->count())->toBe(2)
+        ->and($alice->name)->toBe('Alice Smith')
+        ->and((bool) $alice->is_admin)->toBeTrue()
+        ->and($bob->name)->toBe('Bob');
+});
+
+it('only updates the explicitly given columns on upsert()', function () {
+    DB::table('users')->insert([
+        'name' => 'Alice',
+        'email' => 'alice@example.com',
+        'is_admin' => true,
+    ]);
+
+    makeSeeder()->add()
+        ->table('users')
+        ->columns([
+            ['name' => 'Alice Smith', 'email' => 'alice@example.com', 'is_admin' => false],
+        ])
+        ->upsert(['email'], ['name']);
+
+    $alice = DB::table('users')->where('email', 'alice@example.com')->first();
+
+    expect($alice->name)->toBe('Alice Smith')
+        ->and((bool) $alice->is_admin)->toBeTrue();
+});
+
+it('returns 0 from upsert() when no rows are added', function () {
+    expect(makeSeeder()->add()->table('users')->upsert(['email']))->toBe(0);
+});
+
+it('throws when upsert() is given an empty uniqueBy', function () {
+    makeSeeder()->add()
+        ->table('users')
+        ->columns(['name' => 'Alice', 'email' => 'alice@example.com'])
+        ->upsert([]);
+})->throws(InvalidSeederOperation::class);
