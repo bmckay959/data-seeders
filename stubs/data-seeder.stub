@@ -1,0 +1,29 @@
+<?php
+
+use Bmckay959\DataSeeders\DataSeeder;
+use Bmckay959\DataSeeders\Seeder;
+
+return new class extends DataSeeder
+{
+    /**
+     * Seed real data into the database.
+     */
+    public function seed(Seeder $seeder): void
+    {
+        // $seeder->add()
+        //     ->table('users')
+        //     ->columns([
+        //         ['name' => 'Admin', 'email' => 'admin@example.com'],
+        //     ])
+        //     ->run();
+    }
+
+    /**
+     * Reverse the seed. Optional: only required if you intend to use
+     * `php artisan data-seeders:rollback` for this seeder.
+     */
+    public function rollback(Seeder $seeder): void
+    {
+        //
+    }
+};

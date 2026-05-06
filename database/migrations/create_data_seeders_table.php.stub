@@ -6,14 +6,28 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up()
+    public function up(): void
     {
-        Schema::create('data_seeders_table', function (Blueprint $table) {
+        Schema::connection($this->connection())->create($this->tableName(), function (Blueprint $table) {
             $table->id();
-
-            // add fields
-
-            $table->timestamps();
+            $table->string('seeder');
+            $table->unsignedInteger('batch');
+            $table->timestamp('ran_at')->useCurrent();
         });
+    }
+
+    public function down(): void
+    {
+        Schema::connection($this->connection())->dropIfExists($this->tableName());
+    }
+
+    protected function tableName(): string
+    {
+        return config('data-seeders.table', 'data_seeders');
+    }
+
+    protected function connection(): ?string
+    {
+        return config('data-seeders.connection');
     }
 };
