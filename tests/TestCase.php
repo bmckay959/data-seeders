@@ -2,9 +2,9 @@
 
 namespace Bmckay959\DataSeeders\Tests;
 
+use Bmckay959\DataSeeders\DataSeedersServiceProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Orchestra\Testbench\TestCase as Orchestra;
-use Bmckay959\DataSeeders\DataSeedersServiceProvider;
 
 class TestCase extends Orchestra
 {

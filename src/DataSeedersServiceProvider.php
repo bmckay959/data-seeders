@@ -2,9 +2,9 @@
 
 namespace Bmckay959\DataSeeders;
 
+use Bmckay959\DataSeeders\Commands\DataSeedersCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use Bmckay959\DataSeeders\Commands\DataSeedersCommand;
 
 class DataSeedersServiceProvider extends PackageServiceProvider
 {
