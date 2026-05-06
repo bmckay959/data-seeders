@@ -163,6 +163,27 @@ $seeder->delete()
     ->run();
 ```
 
+### `raw()` — escape hatch
+
+When the fluent builders don't cover what you need, drop down to `raw()`. It accepts either a SQL string with bindings, or a closure that receives the underlying `Illuminate\Database\Connection`:
+
+```php
+$seeder->raw(
+    'UPDATE users SET name = ? WHERE email = ?',
+    ['Alice Smith', 'alice@example.com'],
+);
+
+$seeder->raw(function ($db) {
+    $db->statement('CREATE INDEX users_email_idx ON users (email)');
+
+    $db->table('users')
+        ->where('created_at', '<', now()->subYear())
+        ->update(['archived' => true]);
+});
+```
+
+The closure runs inside the same database transaction the runner has already opened around `seed()` / `rollback()`, so a thrown exception rolls back everything in the seeder. The string form returns the underlying `statement()` result (a `bool`); the closure form returns whatever the closure returns.
+
 ### Loading rows from JSON
 
 Because `columns()` just accepts an array, loading a JSON file is trivial:
